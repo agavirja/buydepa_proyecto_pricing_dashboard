@@ -8,24 +8,24 @@ from ponderaciones import pricingpond
 
 @st.cache(allow_output_mutation=True)
 def getdatacatastro(filename):
-    data = pd.read_pickle(filename)
+    data = pd.read_pickle(filename,compression='gzip')
     return data
 
 @st.cache(allow_output_mutation=True)
 def getdatamarketcoddir(filename,fcoddir):
-    data = pd.read_pickle(filename)
+    data = pd.read_pickle(filename,compression='gzip')
     data = data[data['coddir']==fcoddir]
     return data
 
 @st.cache(allow_output_mutation=True)
 def getdatabarrio(filename,scacodigo):
-    data = pd.read_pickle(filename)
+    data = pd.read_pickle(filename,compression='gzip')
     data = data[(data['scacodigo']==scacodigo) & (data['tipo']=='barrio')]
     return data
 
 @st.cache(allow_output_mutation=True)
 def getdatabarriocomplemento(filename,scacodigo,inputvar):
-    data = pd.read_pickle(filename)
+    data = pd.read_pickle(filename,compression='gzip')
     idd  = (data['scacodigo']==scacodigo) & (data['obs']>5) & (data['tipo']=='complemento')
     if 'habitaciones' in inputvar and inputvar['habitaciones']>0:
         idd = (idd) & (data['habitaciones']==inputvar['habitaciones'])
@@ -39,7 +39,7 @@ def getdatabarriocomplemento(filename,scacodigo,inputvar):
 
 @st.cache(allow_output_mutation=True)
 def getdatamarketsimilar(filename,inputvar):
-    data = pd.read_pickle(filename)
+    data = pd.read_pickle(filename,compression='gzip')
     idd  = True
     if 'areaconstruida' in inputvar and inputvar['areaconstruida']>0:
         areamin = inputvar['areaconstruida']*0.85
@@ -109,11 +109,16 @@ def getforecast(inputvar):
         if 'venta' in tiponegocio.lower():
             #filename_barrio = r'D:\Dropbox\Empresa\Buydepa\COLOMBIA\DESARROLLO\DATA\data_barrio_venta_bogota'
             #filename_oferta = r'D:\Dropbox\Empresa\Buydepa\COLOMBIA\DESARROLLO\DATA\data_market_venta_bogota'
+            #filename_barrio = 'https://personal-data-bucket-online.s3.us-east-2.amazonaws.com/data_barrio_venta_bogota'
+            #filename_oferta = 'https://personal-data-bucket-online.s3.us-east-2.amazonaws.com/data_market_venta_bogota'
             filename_barrio = 'data/data_barrio_venta_bogota'
             filename_oferta = 'data/data_market_venta_bogota'
+
         if 'arriendo' in tiponegocio.lower():
             #filename_barrio = r'D:\Dropbox\Empresa\Buydepa\COLOMBIA\DESARROLLO\DATA\data_barrio_arriendo_bogota'
             #filename_oferta = r'D:\Dropbox\Empresa\Buydepa\COLOMBIA\DESARROLLO\DATA\data_market_arriendo_bogota'
+            #filename_barrio = 'https://personal-data-bucket-online.s3.us-east-2.amazonaws.com/data_barrio_arriendo_bogota'
+            #filename_oferta = 'https://personal-data-bucket-online.s3.us-east-2.amazonaws.com/data_market_arriendo_bogota'
             filename_barrio = 'data/data_barrio_arriendo_bogota'
             filename_oferta = 'data/data_market_arriendo_bogota'
 

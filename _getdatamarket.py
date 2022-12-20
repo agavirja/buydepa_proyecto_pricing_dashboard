@@ -10,13 +10,13 @@ from sidefunctions import coddir, precio_compra
 
 @st.cache(allow_output_mutation=True)
 def getdatamarketcoddir(filename,fcoddir):
-    data = pd.read_pickle(filename)
+    data = pd.read_pickle(filename,compression='gzip')
     data = data[data['coddir']==fcoddir]
     return data
 
 @st.cache(allow_output_mutation=True)
 def getdatamarketsimilar(filename,inputvar):
-    data = pd.read_pickle(filename)
+    data = pd.read_pickle(filename,compression='gzip')
     idd  = True
     if 'areaconstruida' in inputvar and inputvar['areaconstruida']>0:
         areamin = inputvar['areaconstruida']*0.85
@@ -86,10 +86,12 @@ def building_market_data(inputvar):
     
     if 'venta' in tiponegocio.lower():
         #filename_oferta = r'D:\Dropbox\Empresa\Buydepa\COLOMBIA\DESARROLLO\DATA\data_market_venta_bogota'
+        #filename_oferta = 'https://personal-data-bucket-online.s3.us-east-2.amazonaws.com/data_market_venta_bogota'
         filename_oferta = 'data/data_market_venta_bogota'
         vardep          = 'valorventa'
     if 'arriendo' in tiponegocio.lower():
         #filename_oferta = r'D:\Dropbox\Empresa\Buydepa\COLOMBIA\DESARROLLO\DATA\data_market_arriendo_bogota'
+        #filename_oferta = 'https://personal-data-bucket-online.s3.us-east-2.amazonaws.com/data_market_arriendo_bogota'
         filename_oferta = 'data/data_market_arriendo_bogota'
         vardep          = 'valorarriendo'
 
