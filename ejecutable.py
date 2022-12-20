@@ -342,7 +342,6 @@ with st.container():
         #---------------------------------------------------------------------#
         precioventa_disp     = '' # Precio que estan pidiendo por el inmueble
         preferencia_disp     = '' # Precio al que se deberia comprar
-        diferencia_disp      = '' # diferencia porcentual
         forecastprice_disp   = '' # Forecast comercial del inmueble
         precioparaventa_disp = '' # Precio al que se cree que se puede vender
         admon_disp           = '' # Valor de la adminsitracion
@@ -394,21 +393,18 @@ with st.container():
         texto = f'<table style="background-color:{backgroundcolor_seccionprecios};width:100%;border-radius:100px;">{precioventa_disp}{forecastprice_disp}{admon_disp}{preciorenta_disp}{ofertas_building}{unidades_disp}</table>'
         st.markdown(texto,unsafe_allow_html=True) 
         
-        preferencia = st.slider('Precio al que se compra el inmueble (millones)',min_value=100,max_value=1000,value=int(preferencia/1000000))
+    with col1:
+        prefcompra  = f'${preferencia:,.0f}'
+        preferencia = st.slider(f'Precio al que se compra (millones) Precio sugerido: {prefcompra}',min_value=100,max_value=1000,value=int(preferencia/1000000))
         preferencia = preferencia*1000000
         st.write(f'${preferencia:,.0f}' )
         
-        precioalquesevende = st.slider('Precio al que se vendería el inmueble (millones)',min_value=100,max_value=1000,value=int(precioventa/1000000))
+    with col2:
+        precioalquesevende = st.slider('Precio al que se vendería (millones)',min_value=100,max_value=1000,value=int(precioventa/1000000))
         precioalquesevende = precioalquesevende*1000000
         st.write(f'${precioalquesevende:,.0f}' )
         inputvar.update({'preferencia':preferencia,'precioalquesevende':precioalquesevende})
         
-        try:
-          diferencia_pricing = preferencia/precioventa-1
-          st.write("{:.1%}".format(diferencia_pricing))
-          inputvar.update({'diferencia_pricing':diferencia_pricing})
-        except: pass    
-
     st.write('---')
     col1, col2 = st.columns(2)
     with col1:
@@ -453,19 +449,16 @@ with st.container():
 
             if 'otros_gastos' in cifrasnegocio and cifrasnegocio['otros_gastos'] is not None:
                 
-                provisionmt2    = 80000  # colchon financiero
-                pinturamt2      = 15000
-                IVA             = 0.19
-                nmonths         = 6      # Numero de meses maximo para la venta
-                admoncoef       = 5500   # Coeficiente de administracion por mt2 (en caso de no tener valor de admon)
+                provisionmt2 = 80000  # colchon financiero
+                nmonths      = 6      # Numero de meses maximo para la venta
+                admoncoef    = 5500   # Coeficiente de administracion por mt2 (en caso de no tener valor de admon)
                 
-                provision     = provisionmt2*areaconstruida
-                pintura_gasto = pinturamt2*(1+IVA)*areaconstruida
+                provision    = provisionmt2*areaconstruida
                 if (isinstance(admon, int) or isinstance(admon, float)) and admon is not None and admon>0:
                     admon_gasto = admon*nmonths
                 else:
                     admon_gasto = admoncoef*nmonths
-                total_gasto_provision = provision+pintura_gasto+admon_gasto
+                total_gasto_provision = provision+admon_gasto
                 
                 totalgasto        = totalgasto+total_gasto_provision
                 otros_gastos_disp = f'${total_gasto_provision:,.0f}' 
@@ -494,6 +487,7 @@ with st.container():
             retorno_bruto_esperado_disp = ''
             retorno_neto_esperado_disp  = ''
             ganancia_neta_disp          = ''
+            diferencia_disp             = '' # diferencia porcentual
 
             try:
                 retorno_bruto_esperado = precioalquesevende/preferencia-1
@@ -512,9 +506,15 @@ with st.container():
                 ganancia_neta_disp = f'${ganancia_neta:,.0f}' 
                 ganancia_neta_disp = f'<tr style="border-style: none;background-color:{backgroundcolor};"><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">Ganancia neta</td><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">{ganancia_neta_disp}</td></tr>'
                 inputvar.update({'ganancia_neta':ganancia_neta})
-            except: pass        
+            except: pass   
+            try:
+                diferencia_pricing = preferencia/precioventa-1
+                diferencia_disp    = "{:.1%}".format(diferencia_pricing)
+                diferencia_disp    = f'<tr style="border-style: none;background-color:{backgroundcolor_seccionprecios};"><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">Diferencia</td><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;"><b>{diferencia_disp}</b></td></tr>'
+                inputvar.update({'diferencia_pricing':diferencia_pricing})
+            except: pass  
 
-            texto = f'<table style="background-color:{backgroundcolor};width:100%;border-radius:100px;">{retorno_bruto_esperado_disp}{retorno_neto_esperado_disp}{ganancia_neta_disp}</table>'
+            texto = f'<table style="background-color:{backgroundcolor};width:100%;border-radius:100px;">{retorno_bruto_esperado_disp}{retorno_neto_esperado_disp}{ganancia_neta_disp}{diferencia_disp}</table>'
             st.markdown(texto,unsafe_allow_html=True) 
         
 
