@@ -200,17 +200,19 @@ def precio_compra(inputvar):
 #-----------------------------------------------------------------------------#
 @st.cache
 def datamodelo(filename):
-    salida = pd.read_pickle(filename)
+    salida = pd.read_pickle(filename,compression='gzip')
     return salida
     
 def pricingforecast(inputvar):
     
     tiponegocio  = inputvar['tiponegocio']
     if 'venta' in tiponegocio.lower() or 'sell' in tiponegocio.lower():
-        filename = r'D:\Dropbox\Empresa\Buydepa\COLOMBIA\DESARROLLO\proyecto_market_analisis\data\resultado modelo\salida_venta_bogota'
+        #filename = r'D:\Dropbox\Empresa\Buydepa\COLOMBIA\DESARROLLO\proyecto_market_analisis\data\resultado modelo\salida_venta_bogota'
+        filename = 'data/salida_venta_bogota'
     if 'venta' in tiponegocio.lower() or 'rent' in tiponegocio.lower():
         filename = r'D:\Dropbox\Empresa\Buydepa\COLOMBIA\DESARROLLO\proyecto_market_analisis\data\resultado modelo\salida_arriendo_bogota'
-    
+        filename = 'data/salida_arriendo_bogota'
+        
     delta         = 0
     salida        = datamodelo(filename)
     salida        = json.loads(salida['salida'].iloc[0])
