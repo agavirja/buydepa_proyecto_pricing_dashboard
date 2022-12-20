@@ -43,6 +43,9 @@ comisioncompra      = None
 totalgasto          = 0
 cifrasnegocio       = {}
 
+dataconjunto        = pd.DataFrame()
+dataexportsimilares = pd.DataFrame()
+
 idcontinue = True
 
 @st.cache(allow_output_mutation=True)
@@ -111,8 +114,6 @@ with st.sidebar:
     num_ascensores     = st.selectbox('Asensores en el ED, Torre o Unidad',options=[0,1,2,3,4],index=1)
     numerodeniveles    = st.selectbox('Numero de niveles',options=[1,2,3],index=0)
     precioventa        = st.number_input('Precio de oferta en venta',min_value=100000000,max_value=1000000000,value=300000000,step=10000000)
-    precioalquesevende = st.slider('Precio al que se vendería el inmueble (millones)',min_value=100,max_value=1000,value=int(precioventa/1000000))
-    precioalquesevende = precioalquesevende*1000000
     adminsitracion     = st.number_input('Valor de la adminsitracion',min_value=80000,max_value=1500000,value=250000,step=10000)
     preciorenta        = st.text_input('Precio de oferta en renta',value='')
     valorremodelacion  = st.number_input('Valor estimado remodelacion',min_value=0,max_value=100000000,value=round(precioventa*0.03),step=1000000)
@@ -146,7 +147,6 @@ with st.container():
                 'numerodeniveles':numerodeniveles,
                 'adminsitracion':adminsitracion,
                 'precioventa':precioventa,
-                'precioalquesevende':precioalquesevende,
                 'preciorenta':preciorenta,
                 'comisioncompra':comisioncompra,
                 'comisionventa':comisionventa,
@@ -350,31 +350,15 @@ with st.container():
         ofertas_building     = '' # Ofertas activas en el edificio
         unidades_disp        = '' # Unidades del edificio
 
-        try: 
+        try:
             precioventa_disp = f'${precioventa:,.0f}' 
             precioventa_disp = f'<tr style="border-style: none;background-color:{backgroundcolor_seccionprecios};"><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">Precio de oferta</td><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">{precioventa_disp}</td></tr>'
             inputvar.update({'precioventa':precioventa})
         except: pass
-        try: 
-            preferencia_disp = f'${preferencia:,.0f}'  
-            preferencia_disp = f'<tr style="border-style: none;background-color:{backgroundcolor_seccionprecios};"><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">Precio de compra</td><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;"><b>{preferencia_disp}</b></td></tr>'
-            inputvar.update({'preferencia':preferencia})
-        except: pass
         try:
-            diferencia_pricing = preferencia/precioventa-1
-            diferencia_disp    = "{:.1%}".format(diferencia_pricing)
-            diferencia_disp    = f'<tr style="border-style: none;background-color:{backgroundcolor_seccionprecios};"><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">Diferencia</td><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;"><b>{diferencia_disp}</b></td></tr>'
-            inputvar.update({'diferencia_pricing':diferencia_pricing})
-        except: pass
-        try: 
             forecastprice_disp = f'${forecastpriceresult:,.0f}'
             forecastprice_disp = f'<tr style="border-style: none;background-color:{backgroundcolor_seccionprecios};"><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">Forecast precio</td><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">{forecastprice_disp}</td></tr>'
             inputvar.update({'forecastpriceresult':forecastpriceresult})
-        except: pass
-        try:
-            precioparaventa_disp = f'${precioalquesevende:,.0f}'
-            precioparaventa_disp = f'<tr style="border-style: none;background-color:{backgroundcolor_seccionprecios};"><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">Precio al que se puede vender</td><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">{precioparaventa_disp}</td></tr>'
-            inputvar.update({'precioalquesevende':precioalquesevende})
         except: pass
         try:
             admon_disp = f'${admon:,.0f}' 
@@ -407,9 +391,23 @@ with st.container():
                 inputvar.update({'unidades':unidades})
         except: pass
 
-        texto = f'<table style="background-color:{backgroundcolor_seccionprecios};width:100%;border-radius:100px;">{precioventa_disp}{preferencia_disp}{diferencia_disp}{forecastprice_disp}{precioparaventa_disp}{admon_disp}{preciorenta_disp}{ofertas_building}{unidades_disp}</table>'
+        texto = f'<table style="background-color:{backgroundcolor_seccionprecios};width:100%;border-radius:100px;">{precioventa_disp}{forecastprice_disp}{admon_disp}{preciorenta_disp}{ofertas_building}{unidades_disp}</table>'
         st.markdown(texto,unsafe_allow_html=True) 
         
+        preferencia = st.slider('Precio al que se compra el inmueble (millones)',min_value=100,max_value=1000,value=int(preferencia/1000000))
+        preferencia = preferencia*1000000
+        st.write(f'${preferencia:,.0f}' )
+        
+        precioalquesevende = st.slider('Precio al que se vendería el inmueble (millones)',min_value=100,max_value=1000,value=int(precioventa/1000000))
+        precioalquesevende = precioalquesevende*1000000
+        st.write(f'${precioalquesevende:,.0f}' )
+        inputvar.update({'preferencia':preferencia,'precioalquesevende':precioalquesevende})
+        
+        try:
+          diferencia_pricing = preferencia/precioventa-1
+          st.write("{:.1%}".format(diferencia_pricing))
+          inputvar.update({'diferencia_pricing':diferencia_pricing})
+        except: pass    
 
     st.write('---')
     col1, col2 = st.columns(2)
@@ -683,7 +681,7 @@ with st.container():
     savedata2 = st.button('Guardar ')
 
     if savedata1 or savedata2:
-        #st.write(inputvar)
+        
         if 'nombre_conjunto' not in inputvar or ('nombre_conjunto' in inputvar and (inputvar['nombre_conjunto']=='' or inputvar['nombre_conjunto'] is None)):
             if 'nombre_edificio' in inputvar and inputvar['nombre_edificio']!='' and inputvar['nombre_edificio'] is not None:
                 inputvar['nombre_conjunto'] = inputvar['nombre_edificio']
@@ -700,3 +698,42 @@ with st.container():
         engine   = create_engine(f'mysql+mysqlconnector://{user}:{password}@{host}/{database}')
         dataexport.to_sql('data_app_pricing_registros',engine,if_exists='append', index=False)  
         st.write(f'Se guardo la data con exito. SKU: {sku}')
+        
+        data = pd.DataFrame()
+        if dataconjunto.empty is False:
+            dataconjunto['tipodata']       = 'conjunto'
+            dataconjunto['sku']            = sku
+            dataconjunto['fecha_consulta'] = fecha_consulta
+            if 'id_inmueble' in inputvar and inputvar['id_inmueble']>0:
+                dataconjunto['id_inmueble'] = inputvar['id_inmueble']
+            data = data.append(dataconjunto)
+            
+        if dataexportsimilares.empty is False:
+            dataexportsimilares['tipodata']       = 'zona'
+            dataexportsimilares['sku']            = sku
+            dataexportsimilares['fecha_consulta'] = fecha_consulta
+            if 'id_inmueble' in inputvar and inputvar['id_inmueble']>0:
+                dataexportsimilares['id_inmueble'] = inputvar['id_inmueble']
+            data = data.append(dataexportsimilares)            
+            
+        condicion = ''
+        if 'id_inmueble' in inputvar and inputvar['id_inmueble']>0:
+            id_inmueble_mysql = inputvar['id_inmueble']
+            condicion = condicion + f'OR `id_inmueble` = {id_inmueble_mysql}'
+        if 'sku' in inputvar:
+            sku_mysql = inputvar['sku']
+            condicion = condicion + f'OR `sku` = "{sku_mysql}"'
+        
+        if condicion!='':
+            condicion = condicion[3:]
+            db_connection = sql.connect(user=user, password=password, host=host, database=database)
+            cursor        = db_connection.cursor()
+            cursor.execute(f"""DELETE FROM `colombia`.`data_app_pricing_comparables` WHERE ({condicion}); """)
+            db_connection.commit()
+            db_connection.close()
+        variables = [x for x in ['id_inmueble','sku','fecha_consulta','tipodata','available','scacodigo','tiponegocio','tipoinmueble','direccion','coddir','fecha_inicial', 'areaconstruida', 'habitaciones', 'banos', 'garajes', 'estrato', 'tiempodeconstruido', 'valorarriendo', 'valorventa', 'valormt2', 'latitud', 'longitud', 'fuente', 'url', 'telefono1', 'telefono2', 'telefono3'] if x in data]
+        engine   = create_engine(f'mysql+mysqlconnector://{user}:{password}@{host}/{database}')
+        data[variables].to_sql('data_app_pricing_comparables',engine,if_exists='append', index=False,chunksize=100)
+        
+        st.write(inputvar)
+        
