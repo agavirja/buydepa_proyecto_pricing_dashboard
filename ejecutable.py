@@ -8,9 +8,9 @@ import mysql.connector as sql
 from streamlit_folium import st_folium
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from sqlalchemy import create_engine
 
 from sidefunctions import coddir, precio_compra
-
 from _getcatastro import getcatastro
 from _forecastmodel import getforecast
 from _getdatamarket import building_market_data
@@ -77,15 +77,37 @@ with st.sidebar:
         col1.text('Direccion: ')
         col2.write(direccion_formato)
         fcoddir = coddir(direccion_formato)
+        
+    # Inputs de catastro
+    nombre_edificio = ''        
+    estrato         = 3
+    anos_antiguedad = 10
     
-    nombre_edificio    = st.text_input('Nombre del conjunto: ',value='').upper()
+    datacatastro  = getcatastro(direccion_formato)
+    if datacatastro.empty is False:
+        latitud  = datacatastro['latitud'].iloc[0]
+        longitud = datacatastro['longitud'].iloc[0]
+        if 'nombre_conjunto' in datacatastro: 
+            nombre_edificio = datacatastro['nombre_conjunto'].iloc[0]
+        if 'estrato' in datacatastro:
+            try: 
+                estrato_catastro = datacatastro['estrato'].iloc[0]
+                estrato          = int(estrato_catastro)
+            except: pass
+        if 'vetustez_median' in datacatastro:
+            try:
+                antiguedad_catastro = datacatastro['vetustez_median'].iloc[0]
+                anos_antiguedad     = int(datetime.now().year-antiguedad_catastro)
+            except: pass
+        
+    nombre_edificio    = st.text_input('Nombre del conjunto: ',value=nombre_edificio).upper()
     areaconstruida     = st.slider('Area construida',min_value=30,max_value=150,value=50)
     habitaciones       = st.selectbox('# Habitaciones',options=[1,2,3,4],index=2)
     banos              = st.selectbox('# Banos',options=[1,2,3,4,5],index=1)
     garajes            = st.selectbox('# Garajes',options=[0,1,2,3],index=1)
-    estrato            = st.selectbox('Estrato',options=[1,2,3,4,5,6],index=3)
+    estrato            = st.selectbox('Estrato',options=[1,2,3,4,5,6],index=(estrato-1))
     num_piso           = st.slider('Numero de piso',min_value=1,max_value=30,value=5)
-    anos_antiguedad    = st.slider('Anos de antiguedad',min_value=0,max_value=50,value=10)
+    anos_antiguedad    = st.slider('Anos de antiguedad',min_value=0,max_value=50,value=anos_antiguedad)
     num_ascensores     = st.selectbox('Asensores en el ED, Torre o Unidad',options=[0,1,2,3,4],index=1)
     numerodeniveles    = st.selectbox('Numero de niveles',options=[1,2,3],index=0)
     precioventa        = st.number_input('Precio de oferta en venta',min_value=100000000,max_value=1000000000,value=300000000,step=10000000)
@@ -131,6 +153,8 @@ with st.container():
                 'valorremodelacion':valorremodelacion,
                 'url':urlinmueble,
                 'coddir':fcoddir,
+                'latitud': latitud,
+                'longitud': longitud,
                 'metros':300        
         }
 
@@ -144,12 +168,10 @@ with st.container():
         col3.write(f'Id inmueble: {id_inmueble}')
     savedata1 = col4.button('Guardar')
     
-    data  = getcatastro(direccion_formato)
-    if data.empty is False:
-        inputvar.update(data.to_dict(orient='records')[0])
-        if 'latitud'  in inputvar: latitud = inputvar['latitud']
-        if 'longitud' in inputvar: longitud = inputvar['longitud']
-
+    # Informacion catastral
+    if datacatastro.empty is False:
+        inputvar.update(datacatastro.to_dict(orient='records')[0])
+        
     col1, col2 = st.columns(2)
     with col1:
         if (isinstance(latitud, int) or isinstance(latitud, float)) and (isinstance(longitud, int) or isinstance(longitud, float)): 
@@ -661,4 +683,20 @@ with st.container():
     savedata2 = st.button('Guardar ')
 
     if savedata1 or savedata2:
-        st.write(inputvar)
+        #st.write(inputvar)
+        if 'nombre_conjunto' not in inputvar or ('nombre_conjunto' in inputvar and (inputvar['nombre_conjunto']=='' or inputvar['nombre_conjunto'] is None)):
+            if 'nombre_edificio' in inputvar and inputvar['nombre_edificio']!='' and inputvar['nombre_edificio'] is not None:
+                inputvar['nombre_conjunto'] = inputvar['nombre_edificio']
+        if 'adminsitracion' not in inputvar or ('adminsitracion' in inputvar and (inputvar['adminsitracion'] is None or inputvar['adminsitracion']<=0)):
+            if 'admon' in inputvar and (isinstance(inputvar['admon'], int) or isinstance(inputvar['admon'], float)): 
+                if inputvar['admon']>0:
+                    inputvar['adminsitracion'] = inputvar['admon']
+                    
+        dataexport = pd.DataFrame([inputvar])
+        if 'preferencia' in dataexport: dataexport.rename(columns={'preferencia':'preciocompra'},inplace=True)
+        variables  = [x for x in ['id_inmueble','sku','fecha_consulta','tipoinmueble','tiponegocio','ciudad','direccion','coddir','barmanpre','scacodigo','locnombre','barrio','upznombre','nombre_conjunto','anos_antiguedad','areaconstruida','habitaciones','banos','garajes','estrato','num_ascensores','num_piso','numerodeniveles','latitud','longitud','url','vetustez_max','vetustez_median','vetustez_min','unidades','maxpiso','precioventa','preciocompra','precioalquesevende','forecastpriceresult','diferencia_pricing','adminsitracion','preciorenta','gn_compra','gn_venta','valorremodelacion','comisioncompra','comisionventa','total_gasto_provision','totalgasto','ganancia_neta','retorno_bruto_esperado','retorno_neto_esperado','ofertas_building'] if x in dataexport]
+        dataexport = dataexport[variables]
+        
+        engine   = create_engine(f'mysql+mysqlconnector://{user}:{password}@{host}/{database}')
+        dataexport.to_sql('data_app_pricing_registros',engine,if_exists='append', index=False)  
+        st.write(f'Se guardo la data con exito. SKU: {sku}')
