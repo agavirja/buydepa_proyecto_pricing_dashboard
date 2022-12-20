@@ -340,9 +340,7 @@ with st.container():
         
         #---------------------------------------------------------------------#
         precioventa_disp     = '' # Precio que estan pidiendo por el inmueble
-        preferencia_disp     = '' # Precio al que se deberia comprar
         forecastprice_disp   = '' # Forecast comercial del inmueble
-        precioparaventa_disp = '' # Precio al que se cree que se puede vender
         admon_disp           = '' # Valor de la adminsitracion
         preciorenta_disp     = '' # Precio al que se tiene rentando
         ofertas_building     = '' # Ofertas activas en el edificio
@@ -398,13 +396,14 @@ with st.container():
         prefcompra  = f'${preferencia:,.0f}'
         preferencia = st.slider(f'Precio al que se compra (millones) Precio sugerido: {prefcompra}',min_value=100,max_value=1000,value=int(preferencia/1000000))
         preferencia = preferencia*1000000
+        inputvar.update({'preferencia':preferencia})
         st.write(f'${preferencia:,.0f}' )
         
     with col2:
         precioalquesevende = st.slider('Precio al que se vendería (millones)',min_value=100,max_value=1000,value=int(precioventa/1000000))
         precioalquesevende = precioalquesevende*1000000
         st.write(f'${precioalquesevende:,.0f}' )
-        inputvar.update({'preferencia':preferencia,'precioalquesevende':precioalquesevende})
+        inputvar.update({'precioalquesevende':precioalquesevende})
         
     st.write('---')
     col1, col2 = st.columns(2)
@@ -485,11 +484,21 @@ with st.container():
             texto = "<i>Retornos del negocio</i>"
             st.markdown(texto,unsafe_allow_html=True) 
             
+            preferencia_disp            = '' # Precio al que se deberia comprar
+            precioparaventa_disp        = '' # Precio al que se cree que se puede vender
             retorno_bruto_esperado_disp = ''
             retorno_neto_esperado_disp  = ''
             ganancia_neta_disp          = ''
             diferencia_disp             = '' # diferencia porcentual
 
+            try: 
+                preferencia_disp = f'${preferencia:,.0f}'  
+                preferencia_disp = f'<tr style="border-style: none;background-color:{backgroundcolor_seccionprecios};"><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">Precio de compra</td><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;"><b>{preferencia_disp}</b></td></tr>'
+            except: pass
+            try:
+                precioparaventa_disp = f'${precioalquesevende:,.0f}'
+                precioparaventa_disp = f'<tr style="border-style: none;background-color:{backgroundcolor_seccionprecios};"><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">Precio al que se puede vender</td><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">{precioparaventa_disp}</td></tr>'
+            except: pass
             try:
                 retorno_bruto_esperado = precioalquesevende/preferencia-1
                 retorno_bruto_esperado_disp = "{:.1%}".format(retorno_bruto_esperado)
@@ -515,7 +524,7 @@ with st.container():
                 inputvar.update({'diferencia_pricing':diferencia_pricing})
             except: pass
 
-            texto = f'<table style="background-color:{backgroundcolor_seccionprecios};width:100%;border-radius:100px;">{retorno_bruto_esperado_disp}{retorno_neto_esperado_disp}{ganancia_neta_disp}{diferencia_disp}</table>'
+            texto = f'<table style="background-color:{backgroundcolor_seccionprecios};width:100%;border-radius:100px;">{preferencia_disp}{precioparaventa_disp}{retorno_bruto_esperado_disp}{retorno_neto_esperado_disp}{ganancia_neta_disp}{diferencia_disp}</table>'
             st.markdown(texto,unsafe_allow_html=True) 
         
 
@@ -720,13 +729,14 @@ with st.container():
         condicion = ''
         if 'id_inmueble' in inputvar and inputvar['id_inmueble']>0:
             id_inmueble_mysql = inputvar['id_inmueble']
-            condicion = condicion + f'OR `id_inmueble` = {id_inmueble_mysql}'
+            condicion         = condicion + f'OR `id_inmueble` = {id_inmueble_mysql}'
         if 'sku' in inputvar:
             sku_mysql = inputvar['sku']
             condicion = condicion + f'OR `sku` = "{sku_mysql}"'
         
         if condicion!='':
             condicion = condicion[3:]
+            st.write(condicion)
             db_connection = sql.connect(user=user, password=password, host=host, database=database)
             cursor        = db_connection.cursor()
             cursor.execute(f"""DELETE FROM `colombia`.`data_app_pricing_comparables` WHERE ({condicion}); """)
