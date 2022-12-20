@@ -30,7 +30,6 @@ password = st.secrets["password"]
 host     = st.secrets["host"]
 database = st.secrets["database"]
 
-
 # Parametros iniciales:
 latitud             = None
 longitud            = None
@@ -393,6 +392,7 @@ with st.container():
         texto = f'<table style="background-color:{backgroundcolor_seccionprecios};width:100%;border-radius:100px;">{precioventa_disp}{forecastprice_disp}{admon_disp}{preciorenta_disp}{ofertas_building}{unidades_disp}</table>'
         st.markdown(texto,unsafe_allow_html=True) 
         
+    st.write('---')
     col1, col2 = st.columns(2)
     with col1:
         prefcompra  = f'${preferencia:,.0f}'
