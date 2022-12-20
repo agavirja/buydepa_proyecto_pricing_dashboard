@@ -393,6 +393,7 @@ with st.container():
         texto = f'<table style="background-color:{backgroundcolor_seccionprecios};width:100%;border-radius:100px;">{precioventa_disp}{forecastprice_disp}{admon_disp}{preciorenta_disp}{ofertas_building}{unidades_disp}</table>'
         st.markdown(texto,unsafe_allow_html=True) 
         
+    col1, col2 = st.columns(2)
     with col1:
         prefcompra  = f'${preferencia:,.0f}'
         preferencia = st.slider(f'Precio al que se compra (millones) Precio sugerido: {prefcompra}',min_value=100,max_value=1000,value=int(preferencia/1000000))
@@ -492,29 +493,29 @@ with st.container():
             try:
                 retorno_bruto_esperado = precioalquesevende/preferencia-1
                 retorno_bruto_esperado_disp = "{:.1%}".format(retorno_bruto_esperado)
-                retorno_bruto_esperado_disp = f'<tr style="border-style: none;background-color:{backgroundcolor};"><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">Retorno bruto esperado</td><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">{retorno_bruto_esperado_disp}</td></tr>'
+                retorno_bruto_esperado_disp = f'<tr style="border-style: none;background-color:{backgroundcolor_seccionprecios};"><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">Retorno bruto esperado</td><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">{retorno_bruto_esperado_disp}</td></tr>'
                 inputvar.update({'retorno_bruto_esperado':retorno_bruto_esperado})
             except: pass
             try:
                 retorno_neto_esperado = (precioalquesevende-totalgasto)/preferencia-1
                 retorno_neto_esperado_disp = "{:.1%}".format(retorno_neto_esperado)
-                retorno_neto_esperado_disp = f'<tr style="border-style: none;background-color:{backgroundcolor};"><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">Retorno neto esperado</td><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">{retorno_neto_esperado_disp}</td></tr>'
+                retorno_neto_esperado_disp = f'<tr style="border-style: none;background-color:{backgroundcolor_seccionprecios};"><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">Retorno neto esperado</td><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">{retorno_neto_esperado_disp}</td></tr>'
                 inputvar.update({'retorno_neto_esperado':retorno_neto_esperado})
             except: pass
             try:
                 ganancia_neta      = precioalquesevende-preferencia-totalgasto
                 ganancia_neta_disp = f'${ganancia_neta:,.0f}' 
-                ganancia_neta_disp = f'<tr style="border-style: none;background-color:{backgroundcolor};"><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">Ganancia neta</td><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">{ganancia_neta_disp}</td></tr>'
+                ganancia_neta_disp = f'<tr style="border-style: none;background-color:{backgroundcolor_seccionprecios};"><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">Ganancia neta</td><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">{ganancia_neta_disp}</td></tr>'
                 inputvar.update({'ganancia_neta':ganancia_neta})
             except: pass   
             try:
                 diferencia_pricing = preferencia/precioventa-1
                 diferencia_disp    = "{:.1%}".format(diferencia_pricing)
-                diferencia_disp    = f'<tr style="border-style: none;background-color:{backgroundcolor_seccionprecios};"><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">Diferencia</td><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;"><b>{diferencia_disp}</b></td></tr>'
+                diferencia_disp    = f'<tr style="border-style: none;background-color:{backgroundcolor_seccionprecios};"><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;">Diferencia (precio de compra vs precio de venta</td><td style="border-style: none;font-family:{fontfamily};font-size:{fontsize}px;"><b>{diferencia_disp}</b></td></tr>'
                 inputvar.update({'diferencia_pricing':diferencia_pricing})
-            except: pass  
+            except: pass
 
-            texto = f'<table style="background-color:{backgroundcolor};width:100%;border-radius:100px;">{retorno_bruto_esperado_disp}{retorno_neto_esperado_disp}{ganancia_neta_disp}{diferencia_disp}</table>'
+            texto = f'<table style="background-color:{backgroundcolor_seccionprecios};width:100%;border-radius:100px;">{retorno_bruto_esperado_disp}{retorno_neto_esperado_disp}{ganancia_neta_disp}{diferencia_disp}</table>'
             st.markdown(texto,unsafe_allow_html=True) 
         
 
