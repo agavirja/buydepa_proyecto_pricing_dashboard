@@ -55,8 +55,6 @@ def randomone(x):
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits, changeinput=0):
     return ''.join(random.choice(chars) for _ in range(size))
 
-
-    
 @st.cache
 def convert_df(df):
    return df.to_csv(index=False,encoding='utf-8')
