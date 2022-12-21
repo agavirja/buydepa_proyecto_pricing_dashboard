@@ -63,6 +63,9 @@ def convert_df(df):
 
 
 with st.sidebar:
+    ppptest        = st.number_input('una prueba rapida',min_value=100000000,max_value=1000000000,value=300000000,step=10000000)
+    st.write(ppptest)
+    
     ciudad      = st.selectbox('Ciudad',options=['Bogota'])
     id_inmueble = st.number_input('ID inmueble aplicativo (opcional)',min_value=0)
     col1,col2   = st.columns(2)
@@ -133,6 +136,11 @@ with st.sidebar:
                 idcontinue = False
                 st.markdown(f"""<div style="color: red;">Falta incluir {keys}</div>""",unsafe_allow_html=True)  
            
+            
+           
+    ppptest1  = st.slider('una prueba rapida',min_value=100000000,max_value=1000000000,value=ppptest)
+    ppptest.update(ppptest1)
+    
 with st.container():
     inputvar = {
                 "id_inmueble": id_inmueble,  
