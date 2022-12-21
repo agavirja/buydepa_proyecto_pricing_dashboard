@@ -47,7 +47,7 @@ dataexportsimilares = pd.DataFrame()
 
 idcontinue = True
 
-@st.cache
+@st.cache(allow_output_mutation=True)
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits, changeinput=0):
     return ''.join(random.choice(chars) for _ in range(size))
 
@@ -159,7 +159,7 @@ with st.container():
 
     col1, col2, col3, col4 = st.columns(4)
     fecha_consulta   = datetime.now().strftime("%Y-%m-%d")
-    sku              = id_generator(changeinput=1)
+    sku              = id_generator(changeinput=random.random())
     inputvar.update({'fecha_consulta':fecha_consulta,'sku':sku})
     col1.write(f'Fecha: {fecha_consulta}')
     col2.write(f'SKU: {sku}')
