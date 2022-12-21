@@ -159,7 +159,7 @@ with st.container():
 
     col1, col2, col3, col4 = st.columns(4)
     fecha_consulta   = datetime.now().strftime("%Y-%m-%d")
-    sku              = id_generator(changeinput=random.random())
+    sku              = id_generator(changeinput=1)
     inputvar.update({'fecha_consulta':fecha_consulta,'sku':sku})
     col1.write(f'Fecha: {fecha_consulta}')
     col2.write(f'SKU: {sku}')
