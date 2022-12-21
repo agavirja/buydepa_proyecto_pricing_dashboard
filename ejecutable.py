@@ -47,7 +47,7 @@ dataexportsimilares = pd.DataFrame()
 
 idcontinue = True
 
-@st.cache
+@st.cache(allow_output_mutation=True)
 def randomone(x):
     return random.random()
 
