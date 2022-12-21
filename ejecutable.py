@@ -692,6 +692,19 @@ with st.container():
 
     if savedata1 or savedata2:
         
+        condicion = ''
+        if 'id_inmueble' in inputvar and inputvar['id_inmueble']>0:
+            id_inmueble_mysql = inputvar['id_inmueble']
+            condicion         = condicion + f' OR `id_inmueble` = {id_inmueble_mysql}'
+        if 'sku' in inputvar:
+            sku_mysql = inputvar['sku']
+            condicion = condicion + f' OR `sku` = "{sku_mysql}"'
+        
+        if condicion!='':
+            condicion = condicion[4:].strip()
+            
+        #---------------------------------------------------------------------#
+        # save data registros
         if 'nombre_conjunto' not in inputvar or ('nombre_conjunto' in inputvar and (inputvar['nombre_conjunto']=='' or inputvar['nombre_conjunto'] is None)):
             if 'nombre_edificio' in inputvar and inputvar['nombre_edificio']!='' and inputvar['nombre_edificio'] is not None:
                 inputvar['nombre_conjunto'] = inputvar['nombre_edificio']
@@ -706,9 +719,22 @@ with st.container():
         dataexport = dataexport[variables]
         
         engine   = create_engine(f'mysql+mysqlconnector://{user}:{password}@{host}/{database}')
-        dataexport.to_sql('data_app_pricing_registros',engine,if_exists='append', index=False)  
-        st.write(f'Se guardo la data con exito. SKU: {sku}')
+        dataexport.to_sql('data_app_pricing_registros_historico',engine,if_exists='append', index=False)  
         
+        if condicion!='':
+            st.write(condicion)
+            db_connection = sql.connect(user=user, password=password, host=host, database=database)
+            cursor        = db_connection.cursor()
+            cursor.execute(f"""DELETE FROM `colombia`.`data_app_pricing_registros` WHERE ({condicion}); """)
+            db_connection.commit()
+            db_connection.close()
+            
+        engine   = create_engine(f'mysql+mysqlconnector://{user}:{password}@{host}/{database}')
+        dataexport.to_sql('data_app_pricing_registros',engine,if_exists='append', index=False)  
+      
+        #---------------------------------------------------------------------#
+        # save data comparables
+    
         data = pd.DataFrame()
         if dataconjunto.empty is False:
             dataconjunto['tipodata']       = 'conjunto'
@@ -726,25 +752,21 @@ with st.container():
                 dataexportsimilares['id_inmueble'] = inputvar['id_inmueble']
             data = data.append(dataexportsimilares)            
             
-        condicion = ''
-        if 'id_inmueble' in inputvar and inputvar['id_inmueble']>0:
-            id_inmueble_mysql = inputvar['id_inmueble']
-            condicion         = condicion + f'OR `id_inmueble` = {id_inmueble_mysql}'
-        if 'sku' in inputvar:
-            sku_mysql = inputvar['sku']
-            condicion = condicion + f'OR `sku` = "{sku_mysql}"'
-        
+        variables = [x for x in ['id_inmueble','sku','fecha_consulta','tipodata','available','scacodigo','tiponegocio','tipoinmueble','direccion','coddir','fecha_inicial', 'areaconstruida', 'habitaciones', 'banos', 'garajes', 'estrato', 'tiempodeconstruido', 'valorarriendo', 'valorventa', 'valormt2', 'latitud', 'longitud', 'fuente', 'url', 'telefono1', 'telefono2', 'telefono3'] if x in data]
+        engine   = create_engine(f'mysql+mysqlconnector://{user}:{password}@{host}/{database}')
+        data[variables].to_sql('data_app_pricing_comparables_historico',engine,if_exists='append', index=False,chunksize=100)
+       
         if condicion!='':
-            condicion = condicion[3:]
             st.write(condicion)
             db_connection = sql.connect(user=user, password=password, host=host, database=database)
             cursor        = db_connection.cursor()
             cursor.execute(f"""DELETE FROM `colombia`.`data_app_pricing_comparables` WHERE ({condicion}); """)
             db_connection.commit()
             db_connection.close()
-        variables = [x for x in ['id_inmueble','sku','fecha_consulta','tipodata','available','scacodigo','tiponegocio','tipoinmueble','direccion','coddir','fecha_inicial', 'areaconstruida', 'habitaciones', 'banos', 'garajes', 'estrato', 'tiempodeconstruido', 'valorarriendo', 'valorventa', 'valormt2', 'latitud', 'longitud', 'fuente', 'url', 'telefono1', 'telefono2', 'telefono3'] if x in data]
+     
         engine   = create_engine(f'mysql+mysqlconnector://{user}:{password}@{host}/{database}')
         data[variables].to_sql('data_app_pricing_comparables',engine,if_exists='append', index=False,chunksize=100)
-        
+       
+        st.write(f'Se guardo la data con exito. SKU: {sku}')
         st.write(inputvar)
         
