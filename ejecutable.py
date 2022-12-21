@@ -48,7 +48,7 @@ dataexportsimilares = pd.DataFrame()
 idcontinue = True
 
 @st.cache(allow_output_mutation=True)
-def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
+def id_generator(size=6, chars=string.ascii_uppercase + string.digits, changeinput=0):
     return ''.join(random.choice(chars) for _ in range(size))
 
 @st.cache
@@ -159,7 +159,7 @@ with st.container():
 
     col1, col2, col3, col4 = st.columns(4)
     fecha_consulta   = datetime.now().strftime("%Y-%m-%d")
-    sku              = id_generator()
+    sku              = id_generator(changeinput=1)
     inputvar.update({'fecha_consulta':fecha_consulta,'sku':sku})
     col1.write(f'Fecha: {fecha_consulta}')
     col2.write(f'SKU: {sku}')
@@ -722,7 +722,6 @@ with st.container():
         dataexport.to_sql('data_app_pricing_registros_historico',engine,if_exists='append', index=False)  
         
         if condicion!='':
-            st.write(condicion)
             db_connection = sql.connect(user=user, password=password, host=host, database=database)
             cursor        = db_connection.cursor()
             cursor.execute(f"""DELETE FROM `colombia`.`data_app_pricing_registros` WHERE ({condicion}); """)
@@ -757,7 +756,6 @@ with st.container():
         data[variables].to_sql('data_app_pricing_comparables_historico',engine,if_exists='append', index=False,chunksize=100)
        
         if condicion!='':
-            st.write(condicion)
             db_connection = sql.connect(user=user, password=password, host=host, database=database)
             cursor        = db_connection.cursor()
             cursor.execute(f"""DELETE FROM `colombia`.`data_app_pricing_comparables` WHERE ({condicion}); """)
@@ -766,7 +764,4 @@ with st.container():
      
         engine   = create_engine(f'mysql+mysqlconnector://{user}:{password}@{host}/{database}')
         data[variables].to_sql('data_app_pricing_comparables',engine,if_exists='append', index=False,chunksize=100)
-       
         st.write(f'Se guardo la data con exito. SKU: {sku}')
-        st.write(inputvar)
-        
